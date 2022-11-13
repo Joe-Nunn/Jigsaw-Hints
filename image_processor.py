@@ -21,6 +21,7 @@ Example usage:
     python image_processor.py "C:/another/path/to/a/folder/containing/images"
         Processes an entire folder full of images.
 """
+import math
 import os
 import shutil
 import sys
@@ -42,8 +43,8 @@ bounding_factor_error = 0.1
 
 # Clamp values for threshold (used in bounding rect calculation)
 # To increase sensitivity, increase the distance between the two.
-bounding_clamp_lower_value = 25
-bounding_clamp_upper_value = 50
+bounding_clamp_lower_value = 5
+bounding_clamp_upper_value = 70
 
 # Background colour used when adding the background.
 # If the alpha value is max (255), no background is added.
@@ -291,10 +292,10 @@ def center():
     space_horizontal = max(desired_size - width, 0)
 
     # Split either side (to center image).
-    border_top = int(space_vertical / 2)
-    border_bottom = int(space_vertical / 2)
-    border_left = int(space_horizontal / 2)
-    border_right = int(space_horizontal / 2)
+    border_top = math.floor(space_vertical / 2)
+    border_bottom = math.ceil(space_vertical / 2)
+    border_left = math.floor(space_horizontal / 2)
+    border_right = math.ceil(space_horizontal / 2)
 
     # Add the border.
     img_centered = cv2.copyMakeBorder(src=img,
@@ -364,15 +365,24 @@ def calc_bounding_rect():
     # Code from https://docs.opencv.org/4.x/dd/d49/tutorial_py_contour_features.html
     ret, thresh = cv2.threshold(img, bounding_clamp_lower_value, bounding_clamp_upper_value, 0)
     contours, hierarchy = cv2.findContours(thresh, 1, 2)
-    cnt = contours[0]
-    x, y, w, h = cv2.boundingRect(cnt)
-
+    
     # Open mask as bounding PIL image.
     mask_image = Image.open(temp_mask_path)
+    error_area = (mask_image.width * mask_image.height) * bounding_factor_error
+    
+    # Find most significant contour that meets criteria
+    area = 0
+    index = 0
+    x, y, w, h = [0, 0, 0, 0]
+    while (area <= error_area) and not (index >= len(contours)):
+        cnt = contours[index]
+        x, y, w, h = cv2.boundingRect(cnt)
+        area = w * h
+        index += 1
 
     # Error check
     # Check if the area of the rectangle is an appropriate size relative to the size of the image.
-    if (w * h) <= (mask_image.width * mask_image.height) * bounding_factor_error:
+    if area <= error_area:
         warning("Bounding rect size is too small! (" + str(w * h) + " vs " + str((mask_image.width * mask_image.height) * bounding_factor_error) + ")")
     
     # Return the rectangle as an array.
