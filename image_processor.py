@@ -121,6 +121,10 @@ def parse_args(args):
     Parse the arguments given to the program.
     """
     global quiet, input_path
+
+    # Clean up previous values.
+    quiet = False
+    input_path = ""
     
     for arg in args:
         # Flag
