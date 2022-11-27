@@ -10,7 +10,8 @@ It provides functionality for the following processes:
     - Add a solid background colour (optional)
 
 Also accepts the following command line arguments:
-    - "--quiet" - Only print warnings/errors.
+    - `--quiet` - Only print warnings/errors.
+    - `--show-path` - Print the final filepath when complete.
     - You must also give a path to a file or folder to be processed.
         - This can occur anywhere within the arguments.
         - Make sure to enclose within quotes if the path contains spaces.
@@ -28,9 +29,9 @@ ip.process_from_code(os.path.join(os.getcwd(), "test.png") + " --quiet")
 ```
 
 Example usage:
-    - python image_processor.py --quiet "C:/some/valid/path/to/an/image.png"
+    - `python image_processor.py --quiet "C:/some/valid/path/to/an/image.png"`
         - Processes a single image and does not output anything to the command line unless a warning is triggered.
-    - python image_processor.py "C:/another/path/to/a/folder/containing/images"
+    - `python image_processor.py "C:/another/path/to/a/folder/containing/images"`
         - Processes an entire folder full of images.
 """
 import math
@@ -75,6 +76,12 @@ temp_mask_path = "mask.png"
 # Logging level. Will only output warnings if true.
 quiet = False
 
+# Should output final filepath when complete?
+should_output_path = False
+
+# Return output path(s) when calling from code.
+output_paths = []
+
 
 def main():
     """
@@ -107,6 +114,8 @@ def process_from_code(args_as_string):
     Call the image processor script from code rather than command line.
 
     Takes the same args as command line but in the form of a string.
+
+    Returns a list containing all output paths as strings. If only a single file is processed, the list will only contain 1 item.
     """
 
     # https://docs.python.org/3/library/shlex.html
@@ -115,22 +124,28 @@ def process_from_code(args_as_string):
 
     main()
 
+    return output_paths
+
 
 def parse_args(args):
     """
     Parse the arguments given to the program.
     """
-    global quiet, input_path
+    global quiet, input_path, should_output_path, output_paths
 
     # Clean up previous values.
     quiet = False
+    should_output_path = False
     input_path = ""
+    output_paths = []
     
     for arg in args:
         # Flag
         if arg.startswith("-"):
             if arg == "--quiet":
                 quiet = True
+            elif arg == "--show-path":
+                should_output_path = True
         # Else, input path
         else:
             input_path = arg
@@ -179,6 +194,11 @@ def process(file_path):
 
     if not quiet:
         print("Done!")
+    
+    output_paths.append(output_path)
+    
+    if should_output_path:
+        print(output_path)
 
 
 def draw_debug_rect(rect_array):
