@@ -12,19 +12,32 @@ It provides functionality for the following processes:
 Also accepts the following command line arguments:
     - "--quiet" - Only print warnings/errors.
     - You must also give a path to a file or folder to be processed.
-      This can occur anywhere within the arguments.
-      Make sure to enclose within quotes if the path contains spaces.
+        - This can occur anywhere within the arguments.
+        - Make sure to enclose within quotes if the path contains spaces.
+
+
+To process images from another Python script, import the script using
+`import image_processing` and call the `image_processor.process_from_code(...)` method 
+with the command line arguments as a string, e.g.
+
+```
+import image_processor as ip
+import os
+
+ip.process_from_code(os.path.join(os.getcwd(), "test.png") + " --quiet")
+```
 
 Example usage:
-    python image_processor.py --quiet "C:/some/valid/path/to/an/image.png"
-        Processes a single image and does not output anything to the command line unless a warning is triggered.
-    python image_processor.py "C:/another/path/to/a/folder/containing/images"
-        Processes an entire folder full of images.
+    - python image_processor.py --quiet "C:/some/valid/path/to/an/image.png"
+        - Processes a single image and does not output anything to the command line unless a warning is triggered.
+    - python image_processor.py "C:/another/path/to/a/folder/containing/images"
+        - Processes an entire folder full of images.
 """
 import math
 import os
 import shutil
 import sys
+import shlex
 
 import cv2
 from PIL import Image
@@ -68,8 +81,6 @@ def main():
     Begin execution.
     """
 
-    parse_args(sys.argv[1:])
-
     if not quiet:
         print("Starting...")
 
@@ -89,6 +100,20 @@ def main():
     else:
         # is a file.
         process(input_path)
+
+
+def process_from_code(args_as_string):
+    """
+    Call the image processor script from code rather than command line.
+
+    Takes the same args as command line but in the form of a string.
+    """
+
+    # https://docs.python.org/3/library/shlex.html
+    args = shlex.split(args_as_string)
+    parse_args(args)
+
+    main()
 
 
 def parse_args(args):
@@ -420,4 +445,5 @@ def fast_denoise():
 
 
 if __name__ == "__main__":
+    parse_args(sys.argv[1:])
     main()
