@@ -103,10 +103,10 @@ def main():
                 continue
             process(os.path.join(input_path, file_path))
 
-
     else:
         # is a file.
-        process(input_path)
+        if input_path.endswith(".png"):
+            process(input_path)
 
 
 def process_from_code(args_as_string):
