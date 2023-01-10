@@ -42,7 +42,7 @@ class ConvImageProcessor(nn.Module):
         image_tensor = F.relu(image_tensor)
         image_tensor = self.pool(image_tensor)
         image_tensor = self.conv3(image_tensor)
-        image_tensor = self.relu(image_tensor)
+        image_tensor = F.relu(image_tensor)
         image_tensor = self.pool(image_tensor)
 
         # Flatten
