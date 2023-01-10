@@ -26,7 +26,7 @@ class ConvImageProcessor(nn.Module):
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # maintains size and ratio. E.g. input of 256x256 stays 256x256
-        self.conv1 = nn.Conv2d(in_channels=4, out_channels=32, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(in_channels=64, out_channels=FINAL_OUT_CHANNELS, kernel_size=3, stride=1, padding=1)
 
