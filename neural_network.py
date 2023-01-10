@@ -20,14 +20,14 @@ class NeuralNetwork(nn.Module):
         self.fc3 = nn.Linear(1000, 1)
         self.dropout = nn.Dropout()
 
-        def forward(self, batch):
-            """
-            Calculates prediction that jigsaw piece and the sample of the base are the same location
-            """
-            # Fully connected layers
-            batch = self.fc1(batch)
-            batch = self.dropout(batch)
-            batch = self.fc2(batch)
-            batch = self.fc3(batch)
-            batch = torch.sigmoid(batch)
-            return batch
+    def forward(self, batch):
+        """
+        Calculates prediction that jigsaw piece and the sample of the base are the same location
+        """
+        # Fully connected layers
+        batch = self.fc1(batch)
+        batch = self.dropout(batch)
+        batch = self.fc2(batch)
+        batch = self.fc3(batch)
+        batch = torch.sigmoid(batch)
+        return batch

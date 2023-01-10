@@ -30,23 +30,22 @@ class ConvImageProcessor(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
         self.conv3 = nn.Conv2d(in_channels=64, out_channels=FINAL_OUT_CHANNELS, kernel_size=3, stride=1, padding=1)
 
-        def forward(self, image_tensor):
-            """
-            Creates feature map of an image and returns it flattened
+    def forward(self, image_tensor):
+        """
+        Creates feature map of an image and returns it flattened
+        """
+        # Convolutional layers
+        image_tensor = self.conv1(image_tensor)
+        image_tensor = F.relu(image_tensor)
+        image_tensor = self.pool(image_tensor)
+        image_tensor = self.conv2(image_tensor)
+        image_tensor = F.relu(image_tensor)
+        image_tensor = self.pool(image_tensor)
+        image_tensor = self.conv3(image_tensor)
+        image_tensor = self.relu(image_tensor)
+        image_tensor = self.pool(image_tensor)
 
-            """
-            # Convolutional layers
-            image_tensor = self.conv1(image_tensor)
-            image_tensor = F.relu(image_tensor)
-            image_tensor = self.pool(image_tensor)
-            image_tensor = self.conv2(image_tensor)
-            image_tensor = F.relu(image_tensor)
-            image_tensor = self.pool(image_tensor)
-            image_tensor = self.conv3(image_tensor)
-            image_tensor = self.relu(image_tensor)
-            image_tensor = self.pool(image_tensor)
+        # Flatten
+        image_tensor = image_tensor.reshape(image_tensor.shape[0], -1)
 
-            # Flatten
-            image_tensor = image_tensor.reshape(image_tensor.shape[0], -1)
-
-            return image_tensor
+        return image_tensor
