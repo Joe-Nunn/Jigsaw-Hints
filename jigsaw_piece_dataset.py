@@ -44,7 +44,7 @@ class JigsawPieceDataset(Dataset):
                 self.annotations.at[i, "lower_left_x"] = new_lower_left_x / size_x
                 self.annotations.at[i, "top_left_x"] = new_lower_left_x / size_x
                 self.annotations.at[i, "top_right_x"] = (new_lower_left_x + conv_image_processor.INPUT_IMAGE_SIZE - 1) / size_x
-                self.annotations.at[i, "bottom_right_x"] = (new_lower_left_x + conv_image_processor.INPUT_IMAGE_SIZE) - 1 / size_x
+                self.annotations.at[i, "bottom_right_x"] = (new_lower_left_x + conv_image_processor.INPUT_IMAGE_SIZE - 1) / size_x
 
                 # Set all the new y coords
                 self.annotations.at[i, "lower_left_y"] = new_lower_left_y / size_y
