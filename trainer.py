@@ -5,8 +5,8 @@ from neural_network import NeuralNetwork
 from jigsaw_piece_dataset import JigsawPieceDataset
 
 DEFAULT_TRAINING_SIZE = 0.8  # Default proportion of dataset to use for training compared to testing
-DEFAULT_BATCH_SIZE = 128
-DEFAULT_LEARNING_RATE = 0.0003
+DEFAULT_BATCH_SIZE = 32
+DEFAULT_LEARNING_RATE = 0.01
 DEFAULT_WEIGHT_DECAY = 0.00001
 DEFAULT_TRAINING_ITERATIONS = 12
 
@@ -76,12 +76,13 @@ class Trainer:
                 print("Run " + str(i + 1) + ":")
             running_loss = 0
             for batch_num, data in enumerate(self.train_loader):
-                images, labels = data
+                pieces, base_sections, labels = data
                 # Move batch and labels to graphics card if using it
-                images = images.to(self.device)
+                pieces = pieces.to(self.device)
+                base_sections = base_sections.to(self.device)
                 labels = labels.to(self.device)
                 # Forward batch through network
-                outputs = self.network(images)
+                outputs = self.network(pieces, base_sections)
                 # Calculate how wrong the network output is
                 loss = criterion(outputs, labels)
                 # Adjust weights
@@ -121,11 +122,12 @@ class Trainer:
 
         with torch.no_grad():  # Gradient isn't needed in testing, not using it increases performance
             for batch_num, data in enumerate(loader):
-                images, labels = data
+                pieces, base_sections, labels = data
                 # Move batch of images to graphics card if using it
-                images = images.to(self.device)
+                pieces = pieces.to(self.device)
+                base_sections = base_sections.to(self.device)
                 # Forward batch through network
-                predictions = self.network(images)
+                predictions = self.network(pieces, base_sections)
                 # Determine how many predictions were correct
                 predictions = predictions.flatten().tolist()
                 labels = labels.flatten().tolist()
