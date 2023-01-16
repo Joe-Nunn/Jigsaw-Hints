@@ -1,7 +1,7 @@
 """
 Class to create flattened feature maps of jigsaw pieces and sections of the overall board
 """
-
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -9,9 +9,7 @@ LAYERS = 3
 
 INPUT_IMAGE_SIZE = 256  # Height and width same
 
-FINAL_OUT_CHANNELS = 128
-
-FLATTENED_TENSOR_SIZE = (INPUT_IMAGE_SIZE / (pow(pow(2, LAYERS), 2))) * FINAL_OUT_CHANNELS
+FLATTENED_TENSOR_SIZE = 131072
 
 
 class ConvImageProcessor(nn.Module):
@@ -28,7 +26,7 @@ class ConvImageProcessor(nn.Module):
         # maintains size and ratio. E.g. input of 256x256 stays 256x256
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(in_channels=64, out_channels=FINAL_OUT_CHANNELS, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
 
     def forward(self, image_tensor):
         """
@@ -46,6 +44,6 @@ class ConvImageProcessor(nn.Module):
         image_tensor = self.pool(image_tensor)
 
         # Flatten
-        image_tensor = image_tensor.reshape(image_tensor.shape[0], -1)
+        image_tensor = torch.flatten(image_tensor)
 
         return image_tensor
