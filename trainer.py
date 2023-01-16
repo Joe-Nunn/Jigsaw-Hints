@@ -6,7 +6,7 @@ from jigsaw_piece_dataset import JigsawPieceDataset
 
 DEFAULT_TRAINING_SIZE = 0.8  # Default proportion of dataset to use for training compared to testing
 DEFAULT_BATCH_SIZE = 32
-DEFAULT_LEARNING_RATE = 0.01
+DEFAULT_LEARNING_RATE = 0.1
 DEFAULT_WEIGHT_DECAY = 0.00001
 DEFAULT_TRAINING_ITERATIONS = 12
 
@@ -65,7 +65,8 @@ class Trainer:
 
         # Initialise lists to store training results in
         losses = []
-        test_accuracy = []
+        test_set_accuracy = []
+        train_set_accuracy = []
 
         # Train the network with the training set
         if not silent:
@@ -95,15 +96,20 @@ class Trainer:
             number_of_batches = len(self.train_loader)
             avg_iteration_loss = running_loss / number_of_batches
             losses.append(avg_iteration_loss)
-            if test:  # Run test run
-                test_results = self.test(self.test_loader)
-                test_accuracy.append(test_results)
+            if test:
+                # Run test run on training set
+                test_set_results = self.test(self.test_loader)
+                test_set_accuracy.append(test_set_results)
+                # Run test run on test set
+                train_set_results = self.test(self.train_loader)
+                train_set_accuracy.append(train_set_results)
             if not silent:
                 print("\t Loss: " + str(avg_iteration_loss))
             if not silent and test:
-                print("\t Test accuracy: " + str(test_results))
+                print("\t Test set accuracy: " + str(test_set_results))
+                print("\t Train set accuracy: " + str(train_set_results))
 
-        return losses, test_accuracy
+        return losses, test_set_accuracy, train_set_accuracy
 
     def test(self, loader=None):
         """
