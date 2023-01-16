@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-FLATTENED_TENSOR_SIZE = 262144
+FLATTENED_TENSOR_SIZE = 65536
 
 
 class NeuralNetwork(nn.Module):
@@ -20,17 +20,17 @@ class NeuralNetwork(nn.Module):
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # maintains size and ratio. E.g. input of 256x256 stays 256x256
-        self.conv_piece_1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1)
-        self.conv_piece_2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
-        self.conv_piece_3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
+        self.conv_piece_1 = nn.Conv2d(in_channels=3, out_channels=8, kernel_size=3, stride=1, padding=1)
+        self.conv_piece_2 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, stride=1, padding=1)
+        self.conv_piece_3 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1)
 
-        self.conv_base_1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1)
-        self.conv_base_2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
-        self.conv_base_3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
+        self.conv_base_1 = nn.Conv2d(in_channels=3, out_channels=8, kernel_size=3, stride=1, padding=1)
+        self.conv_base_2 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, stride=1, padding=1)
+        self.conv_base_3 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1)
 
         # Comparing two flattened tensors representing the jigsaw piece and section of the board
-        self.fc1 = nn.Linear(FLATTENED_TENSOR_SIZE, 1000)
-        self.fc2 = nn.Linear(1000, 1000)
+        self.fc1 = nn.Linear(FLATTENED_TENSOR_SIZE, 4000)
+        self.fc2 = nn.Linear(4000, 1000)
         self.fc3 = nn.Linear(1000, 1)
         self.dropout = nn.Dropout()
 
