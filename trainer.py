@@ -5,7 +5,7 @@ from neural_network import NeuralNetwork
 from jigsaw_piece_dataset import JigsawPieceDataset
 
 DEFAULT_TRAINING_SIZE = 0.8  # Default proportion of dataset to use for training compared to testing
-DEFAULT_BATCH_SIZE = 32
+DEFAULT_BATCH_SIZE = 64
 DEFAULT_LEARNING_RATE = 0.1
 DEFAULT_WEIGHT_DECAY = 0.00001
 DEFAULT_TRAINING_ITERATIONS = 12

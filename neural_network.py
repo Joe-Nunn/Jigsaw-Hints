@@ -1,12 +1,10 @@
 """
-Contains class NeuralNetwork which defines a neural network to predict image labels for actions in sports
+Contains class NeuralNetwork which defines a neural network to predict if an image of a jigsaw piece is from the same
+part of the puzzle as an image of a section of the box
 """
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
-FLATTENED_TENSOR_SIZE = 65536
 
 
 class NeuralNetwork(nn.Module):
@@ -16,55 +14,41 @@ class NeuralNetwork(nn.Module):
     """
     def __init__(self):
         super().__init__()
-        # Half size, will be applied after every conv layer. E.g. 128x128 becomes 64x64
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        # maintains size and ratio. E.g. input of 256x256 stays 256x256
-        self.conv_piece_1 = nn.Conv2d(in_channels=3, out_channels=8, kernel_size=3, stride=1, padding=1)
-        self.conv_piece_2 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, stride=1, padding=1)
-        self.conv_piece_3 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1)
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=10),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=7),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=4),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=4),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2)
+        )
 
-        self.conv_base_1 = nn.Conv2d(in_channels=3, out_channels=8, kernel_size=3, stride=1, padding=1)
-        self.conv_base_2 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, stride=1, padding=1)
-        self.conv_base_3 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1)
+        self.fc1 = nn.Linear(128 * 12 * 12, 4000)
+        self.fcOut = nn.Linear(4000, 1)
 
-        # Comparing two flattened tensors representing the jigsaw piece and section of the board
-        self.fc1 = nn.Linear(FLATTENED_TENSOR_SIZE, 4000)
-        self.fc2 = nn.Linear(4000, 1000)
-        self.fc3 = nn.Linear(1000, 1)
+        self.sigmoid = nn.Sigmoid()
         self.dropout = nn.Dropout()
 
     def forward(self, pieces, base_sections):
         """
         Calculates prediction that jigsaw piece and the sample of the base are the same location
         """
-        pieces = self.conv_piece_1(pieces)
-        pieces = F.relu(pieces)
-        pieces = self.pool(pieces)
-        pieces = self.conv_piece_2(pieces)
-        pieces = F.relu(pieces)
-        pieces = self.pool(pieces)
-        pieces = self.conv_piece_3(pieces)
-        pieces = F.relu(pieces)
-        pieces = self.pool(pieces)
+        pieces = self.conv(pieces)
+        pieces = torch.flatten(pieces, start_dim=1)
+        pieces = self.fc1(pieces)
+        pieces = self.sigmoid(pieces)
 
-        base_sections = self.conv_base_1(base_sections)
-        base_sections = F.relu(base_sections)
-        base_sections = self.pool(base_sections)
-        base_sections = self.conv_base_2(base_sections)
-        base_sections = F.relu(base_sections)
-        base_sections = self.pool(base_sections)
-        base_sections = self.conv_base_3(base_sections)
-        base_sections = F.relu(base_sections)
-        base_sections = self.pool(base_sections)
+        base_sections = self.conv(base_sections)
+        base_sections = torch.flatten(base_sections, start_dim=1)
+        base_sections = self.fc1(base_sections)
+        base_sections = self.sigmoid(base_sections)
 
-        #  Dimension of 1 is after batch dimension
-        combined_batch = torch.concat((pieces, base_sections), dim=1)
-        combined_batch = torch.flatten(combined_batch, start_dim=1)
-
-        combined_batch = self.fc1(combined_batch)
-        combined_batch = self.dropout(combined_batch)
-        combined_batch = self.fc2(combined_batch)
-        combined_batch = self.fc3(combined_batch)
-        combined_batch = torch.sigmoid(combined_batch)
-        return combined_batch
+        diff = torch.abs(pieces - base_sections)
+        return self.sigmoid(self.fcOut(diff))
