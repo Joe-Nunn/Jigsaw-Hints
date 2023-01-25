@@ -8,7 +8,7 @@ DEFAULT_TRAINING_SIZE = 0.8  # Default proportion of dataset to use for training
 DEFAULT_BATCH_SIZE = 64
 DEFAULT_LEARNING_RATE = 0.1
 DEFAULT_WEIGHT_DECAY = 0.00001
-DEFAULT_TRAINING_ITERATIONS = 12
+DEFAULT_TRAINING_EPOCHS = 12
 
 
 class Trainer:
@@ -44,19 +44,19 @@ class Trainer:
 
         return train_loader, test_loader
 
-    def train(self, test=True, silent=False, learning_rate=DEFAULT_LEARNING_RATE, weight_decay=DEFAULT_WEIGHT_DECAY, iterations=DEFAULT_TRAINING_ITERATIONS):
+    def train(self, test=True, silent=False, learning_rate=DEFAULT_LEARNING_RATE, weight_decay=DEFAULT_WEIGHT_DECAY, epochs=DEFAULT_TRAINING_EPOCHS):
         """
         Trains the neural network using the train set of data.
         Uses binary-cross entropy loss and Adam optimisation.
 
-        Prints loss and test accuracy each training iteration is silent is false.
+        Prints loss and test accuracy each training epoch is silent is false.
 
         :param: test: whether to test the model while training or not
         :param: learning_rate: learning rate used by the optimiser
         :param: weight_decay: weight decay used by the optimiser
-        :param: iterations: number of times the training set is passed through the neural network
+        :param: epochs: number of times the training set is passed through the neural network
         :param: silent: whether results of tests should be printed
-        :return: Tuple of a list containing the loss of each iteration and the test accuracy. If test is False the second list will be empty.
+        :return: Tuple of a list containing the loss of each epoch and the test accuracy. If test is False the second list will be empty.
         """
         criterion = nn.BCELoss()
         optimiser = torch.optim.SGD(self.network.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -71,10 +71,10 @@ class Trainer:
         # Train the network with the training set
         if not silent:
             print("Starting training on " + self.device.type)
-        for i in range(iterations):
+        for i in range(epochs):
             self.network.train()  # Set network to training mode
             if not silent:
-                print("Run " + str(i + 1) + ":")
+                print("Epoch " + str(i + 1) + ":")
             running_loss = 0
             for batch_num, data in enumerate(self.train_loader):
                 pieces, base_sections, labels = data
@@ -92,10 +92,10 @@ class Trainer:
                 optimiser.step()
                 # Update total loss for run
                 running_loss += loss.item()
-            #  Update average loss for iteration
+            #  Update average loss for epoch
             number_of_batches = len(self.train_loader)
-            avg_iteration_loss = running_loss / number_of_batches
-            losses.append(avg_iteration_loss)
+            avg_epoch_loss = running_loss / number_of_batches
+            losses.append(avg_epoch_loss)
             if test:
                 # Run test run on training set
                 test_set_results = self.test(self.test_loader)
@@ -104,7 +104,7 @@ class Trainer:
                 train_set_results = self.test(self.train_loader)
                 train_set_accuracy.append(train_set_results)
             if not silent:
-                print("\t Loss: " + str(avg_iteration_loss))
+                print("\t Loss: " + str(avg_epoch_loss))
             if not silent and test:
                 print("\t Test set accuracy: " + str(test_set_results))
                 print("\t Train set accuracy: " + str(train_set_results))
