@@ -1,3 +1,7 @@
+"""
+Runs the trainer to train the model with default parameters
+"""
+
 from trainer import Trainer
 import os
 
