@@ -17,15 +17,19 @@ class NeuralNetwork(nn.Module):
 
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=32, kernel_size=10),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=7),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=4),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=4),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(2, 2)
         )
