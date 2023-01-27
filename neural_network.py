@@ -31,7 +31,8 @@ class NeuralNetwork(nn.Module):
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=4),
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2)
+            nn.MaxPool2d(2, 2),
+            nn.Dropout()
         )
 
         self.fc1 = nn.Linear(128 * 12 * 12, 4000)
@@ -47,11 +48,13 @@ class NeuralNetwork(nn.Module):
         pieces = self.conv(pieces)
         pieces = torch.flatten(pieces, start_dim=1)
         pieces = self.fc1(pieces)
+        pieces = self.dropout(pieces)
         pieces = self.sigmoid(pieces)
 
         base_sections = self.conv(base_sections)
         base_sections = torch.flatten(base_sections, start_dim=1)
         base_sections = self.fc1(base_sections)
+        base_sections = self.dropout(base_sections)
         base_sections = self.sigmoid(base_sections)
 
         diff = torch.abs(pieces - base_sections)
