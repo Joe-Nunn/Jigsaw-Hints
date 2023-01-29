@@ -12,6 +12,7 @@ It provides functionality for the following processes:
 Also accepts the following command line arguments:
     - `--quiet` - Only print warnings/errors.
     - `--show-path` - Print the final filepath when complete.
+    - `--replace` - Replace original file.
     - You must also give a path to a file or folder to be processed.
         - This can occur anywhere within the arguments.
         - Make sure to enclose within quotes if the path contains spaces.
@@ -79,6 +80,9 @@ quiet = False
 # Should output final filepath when complete?
 should_output_path = False
 
+# If original image should be replaced by processed image
+replace = False
+
 # Return output path(s) when calling from code.
 output_paths = []
 
@@ -103,10 +107,10 @@ def main():
                 continue
             process(os.path.join(input_path, file_path))
 
-
     else:
         # is a file.
-        process(input_path)
+        if input_path.endswith(".png"):
+            process(input_path)
 
 
 def process_from_code(args_as_string):
@@ -131,7 +135,7 @@ def parse_args(args):
     """
     Parse the arguments given to the program.
     """
-    global quiet, input_path, should_output_path, output_paths
+    global quiet, input_path, should_output_path, output_paths, replace
 
     # Clean up previous values.
     quiet = False
@@ -146,6 +150,8 @@ def parse_args(args):
                 quiet = True
             elif arg == "--show-path":
                 should_output_path = True
+            if arg == "--replace":
+                replace = True
         # Else, input path
         else:
             input_path = arg
@@ -175,15 +181,21 @@ def process(file_path):
 
     # Calculate the output path.
     output_path = "unknown.png"
+
+    append = ""
+    # To stop file being replaced -out will be added to file name
+    if not replace:
+        append = "-out"
+
     if os.path.isfile(input_path):
-        # If just a file, append "-out" and save in the same folder as the input.
+        # If just a file, save in the same folder as the input.
         idx = input_path.index(".png")
-        output_path = input_path[:idx] + "-out" + input_path[idx:]
+        output_path = input_path[:idx] + append + input_path[idx:]
     else:
         # Same as above, but respects path inputs.
         basename = os.path.basename(file_path).replace(".png", "")
         basepath = file_path.replace(os.path.basename(file_path), "")
-        output_path = os.path.join(basepath, basename + "-out" + ".png")
+        output_path = os.path.join(basepath, basename + append + ".png")
 
     # Copy the fully processed temp file to the output path.
     shutil.copyfile(temp_path, output_path)
