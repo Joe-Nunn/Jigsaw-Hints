@@ -103,12 +103,18 @@ class Trainer:
                 # Run test run on test set
                 train_set_results = self.test(self.train_loader)
                 train_set_accuracy.append(train_set_results)
+                if test_set_results == max(test_set_accuracy):
+                    self.save_model("best_model.pt")
+                    if not silent:
+                        print("\t New best model saved")
+
             if not silent:
                 print("\t Loss: " + str(avg_epoch_loss))
             if not silent and test:
                 print("\t Test set accuracy: " + str(test_set_results))
                 print("\t Train set accuracy: " + str(train_set_results))
 
+        self.save_model("final_model.pt")
         return losses, test_set_accuracy, train_set_accuracy
 
     def test(self, loader=None):
@@ -142,3 +148,6 @@ class Trainer:
                         correct_predictions += 1
 
         return correct_predictions / len(loader.dataset)
+
+    def save_model(self, path):
+        torch.save(self.network.state_dict(), path)
