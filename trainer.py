@@ -4,11 +4,12 @@ from torch.utils.data import DataLoader
 from neural_network import NeuralNetwork
 from jigsaw_piece_dataset import JigsawPieceDataset
 
-DEFAULT_TRAINING_SIZE = 0.8  # Default proportion of dataset to use for training compared to testing
+DEFAULT_TRAINING_SIZE = 0.9  # Default proportion of dataset to use for training compared to testing
 DEFAULT_BATCH_SIZE = 48
 DEFAULT_LEARNING_RATE = 0.1
 DEFAULT_WEIGHT_DECAY = 0.00001
 DEFAULT_TRAINING_EPOCHS = 12
+BATCHES_PER_EPOCH = 64  # 3072 samples per epoch
 
 
 class Trainer:
@@ -92,6 +93,9 @@ class Trainer:
                 optimiser.step()
                 # Update total loss for run
                 running_loss += loss.item()
+                if batch_num >= BATCHES_PER_EPOCH - 1:  # End epoch after required number of random batches
+                    break
+
             #  Update average loss for epoch
             number_of_batches = len(self.train_loader)
             avg_epoch_loss = running_loss / number_of_batches
