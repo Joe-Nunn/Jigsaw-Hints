@@ -3,13 +3,14 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from neural_network import NeuralNetwork
 from jigsaw_piece_dataset import JigsawPieceDataset
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 DEFAULT_TRAINING_SIZE = 0.9  # Default proportion of dataset to use for training compared to testing
 DEFAULT_BATCH_SIZE = 48
 DEFAULT_LEARNING_RATE = 0.1
 DEFAULT_WEIGHT_DECAY = 0.00001
-DEFAULT_TRAINING_EPOCHS = 12
-BATCHES_PER_EPOCH = 64  # 3072 samples per epoch
+DEFAULT_TRAINING_EPOCHS = 128
+BATCHES_PER_EPOCH = 32  # 3072 samples per epoch
 
 
 class Trainer:
@@ -61,6 +62,7 @@ class Trainer:
         """
         criterion = nn.BCELoss()
         optimiser = torch.optim.SGD(self.network.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        schedular = ReduceLROnPlateau(optimiser, patience=4, verbose=True, factor=0.5)
 
         self.network.to(self.device)  # Move model onto GPU if available
 
@@ -97,8 +99,8 @@ class Trainer:
                     break
 
             #  Update average loss for epoch
-            number_of_batches = len(self.train_loader)
-            avg_epoch_loss = running_loss / number_of_batches
+            avg_epoch_loss = running_loss / BATCHES_PER_EPOCH
+            schedular.step(avg_epoch_loss)
             losses.append(avg_epoch_loss)
             if test:
                 # Run test run on training set
