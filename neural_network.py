@@ -35,8 +35,9 @@ class NeuralNetwork(nn.Module):
             nn.Dropout()
         )
 
-        self.fc1 = nn.Linear(128 * 12 * 12, 4000)
-        self.fcOut = nn.Linear(4000, 1)
+        self.fc1 = nn.Linear(128 * 12 * 12, 8000)
+        self.fcOut1 = nn.Linear(8000, 4000)
+        self.fcOut2 = nn.Linear(4000, 1)
 
         self.sigmoid = nn.Sigmoid()
         self.dropout = nn.Dropout()
@@ -58,4 +59,8 @@ class NeuralNetwork(nn.Module):
         base_sections = self.sigmoid(base_sections)
 
         diff = torch.abs(pieces - base_sections)
-        return self.sigmoid(self.fcOut(diff))
+        #combine = torch.concat((pieces, base_sections), 1)
+
+        fc_out_result = self.fcOut1(diff)
+        fc_out_result = self.fcOut2(fc_out_result)
+        return self.sigmoid(fc_out_result)
