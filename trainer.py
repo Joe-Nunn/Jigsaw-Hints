@@ -8,7 +8,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 DEFAULT_TRAINING_SIZE = 0.9  # Default proportion of dataset to use for training compared to testing
 DEFAULT_BATCH_SIZE = 16
 DEFAULT_LEARNING_RATE = 0.1
-DEFAULT_WEIGHT_DECAY = 0.00001
+DEFAULT_WEIGHT_DECAY = 0
 DEFAULT_TRAINING_EPOCHS = 16
 BATCHES_PER_EPOCH = 128  # 1024 samples per epoch
 
@@ -61,7 +61,7 @@ class Trainer:
         :return: Tuple of a list containing the loss of each epoch and the test accuracy. If test is False the second list will be empty.
         """
         criterion = nn.BCELoss()
-        optimiser = torch.optim.SGD(self.network.parameters(), lr=learning_rate, weight_decay=0)
+        optimiser = torch.optim.SGD(self.network.parameters(), lr=learning_rate, weight_decay=weight_decay)
         schedular = ReduceLROnPlateau(optimiser, patience=4, verbose=True, factor=0.5)
 
         self.network.to(self.device)  # Move model onto GPU if available
