@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset
 from PIL import Image
 
-INPUT_IMAGE_SIZE = 256
+INPUT_IMAGE_SIZE = 256  # x and y
 
 
 class JigsawPieceDataset(Dataset):
@@ -66,8 +66,7 @@ class JigsawPieceDataset(Dataset):
     def __getitem__(self, index):
         """
         Returns a tuple of:
-            A flattened tensor of the jigsaw piece and possible section of the base it came from
-            a tensor of the jigsaw piece,
+            A tensor of the jigsaw piece,
             a tensor of a section of the base,
             and a tensor of 0 or 1 indicating whether the jigsaw piece is actually from the base section image
         """
@@ -75,7 +74,7 @@ class JigsawPieceDataset(Dataset):
         piece_path = os.path.join(self.root_dir, piece_id + ".png")
         piece = Image.open(piece_path)
         piece = piece.convert("RGB")  # remove alpha channel
-        piece.rotate(90 * random.randint(0, 3))
+        piece.rotate(90 * random.randint(0, 3))  # Random rotation or no rotation
         transform = transforms.ToTensor()
         piece = transform(piece)
         piece = piece.float()

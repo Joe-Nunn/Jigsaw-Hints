@@ -1,6 +1,6 @@
 """
-Contains class NeuralNetwork which defines a neural network to predict if an image of a jigsaw piece is from the same
-part of the puzzle as an image of a section of the box
+Contains class NeuralNetwork which defines a Siamese neural network to predict if an image of a jigsaw piece is from the
+same part of the puzzle as an image of a section of the box
 """
 
 import torch
@@ -17,21 +17,27 @@ class NeuralNetwork(nn.Module):
 
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=32, kernel_size=10),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
             nn.Conv2d(in_channels=32, out_channels=64, kernel_size=7),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=4),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=4),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(2, 2)
+            nn.MaxPool2d(2, 2),
+            nn.Dropout()
         )
 
-        self.fc1 = nn.Linear(128 * 12 * 12, 4000)
-        self.fcOut = nn.Linear(4000, 1)
+        self.fc1 = nn.Linear(128 * 12 * 12, 8000)
+        self.fcOut1 = nn.Linear(8000, 4000)
+        self.fcOut2 = nn.Linear(4000, 1)
 
         self.sigmoid = nn.Sigmoid()
         self.dropout = nn.Dropout()
@@ -41,14 +47,19 @@ class NeuralNetwork(nn.Module):
         Calculates prediction that jigsaw piece and the sample of the base are the same location
         """
         pieces = self.conv(pieces)
-        pieces = torch.flatten(pieces, start_dim=1)
+        pieces = torch.flatten(pieces, start_dim=1)  # Flatten on dimensions after batch
         pieces = self.fc1(pieces)
+        pieces = self.dropout(pieces)
         pieces = self.sigmoid(pieces)
 
         base_sections = self.conv(base_sections)
-        base_sections = torch.flatten(base_sections, start_dim=1)
+        base_sections = torch.flatten(base_sections, start_dim=1)  # Flatten on dimensions after batch
         base_sections = self.fc1(base_sections)
+        base_sections = self.dropout(base_sections)
         base_sections = self.sigmoid(base_sections)
 
         diff = torch.abs(pieces - base_sections)
-        return self.sigmoid(self.fcOut(diff))
+
+        fc_out_result = self.fcOut1(diff)
+        fc_out_result = self.fcOut2(fc_out_result)
+        return self.sigmoid(fc_out_result)

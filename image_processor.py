@@ -63,7 +63,7 @@ bounding_clamp_upper_value = 70
 
 # Background colour used when adding the background.
 # If the alpha value is max (255), no background is added.
-background_colour = (128, 0, 0, 255) # RGBA
+background_colour = (128, 0, 0, 255)  # RGBA
 
 # Input path to the image or folder containing images to process.
 # Can either point to an image, or a folder.
@@ -194,8 +194,8 @@ def process(file_path):
     else:
         # Same as above, but respects path inputs.
         basename = os.path.basename(file_path).replace(".png", "")
-        basepath = file_path.replace(os.path.basename(file_path), "")
-        output_path = os.path.join(basepath, basename + append + ".png")
+        base_path = file_path.replace(os.path.basename(file_path), "")
+        output_path = os.path.join(base_path, basename + append + ".png")
 
     # Copy the fully processed temp file to the output path.
     shutil.copyfile(temp_path, output_path)

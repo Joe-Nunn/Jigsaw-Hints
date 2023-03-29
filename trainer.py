@@ -3,12 +3,14 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from neural_network import NeuralNetwork
 from jigsaw_piece_dataset import JigsawPieceDataset
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-DEFAULT_TRAINING_SIZE = 0.8  # Default proportion of dataset to use for training compared to testing
-DEFAULT_BATCH_SIZE = 64
+DEFAULT_TRAINING_SIZE = 0.9  # Default proportion of dataset to use for training compared to testing
+DEFAULT_BATCH_SIZE = 16
 DEFAULT_LEARNING_RATE = 0.1
-DEFAULT_WEIGHT_DECAY = 0.00001
-DEFAULT_TRAINING_EPOCHS = 12
+DEFAULT_WEIGHT_DECAY = 0
+DEFAULT_TRAINING_EPOCHS = 16
+BATCHES_PER_EPOCH = 128  # 2048 samples per epoch
 
 
 class Trainer:
@@ -47,19 +49,21 @@ class Trainer:
     def train(self, test=True, silent=False, learning_rate=DEFAULT_LEARNING_RATE, weight_decay=DEFAULT_WEIGHT_DECAY, epochs=DEFAULT_TRAINING_EPOCHS):
         """
         Trains the neural network using the train set of data.
-        Uses binary-cross entropy loss and Adam optimisation.
+        Uses binary-cross entropy loss and SGD optimisation.
 
-        Prints loss and test accuracy each training epoch is silent is false.
+        Prints loss and test accuracy each training epoch if silent is false.
 
         :param: test: whether to test the model while training or not
         :param: learning_rate: learning rate used by the optimiser
         :param: weight_decay: weight decay used by the optimiser
-        :param: epochs: number of times the training set is passed through the neural network
+        :param: epochs: number of times batches from the training set are passed through the neural network
         :param: silent: whether results of tests should be printed
-        :return: Tuple of a list containing the loss of each epoch and the test accuracy. If test is False the second list will be empty.
+        :return: Tuple of a list containing the loss of each epoch and the test accuracy. If test is False the test accuracy lists will be empty
         """
         criterion = nn.BCELoss()
         optimiser = torch.optim.SGD(self.network.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        # Every time loss has decreased for four epochs learning rate is reduced by half
+        schedular = ReduceLROnPlateau(optimiser, patience=4, verbose=not silent, factor=0.5)
 
         self.network.to(self.device)  # Move model onto GPU if available
 
@@ -92,9 +96,12 @@ class Trainer:
                 optimiser.step()
                 # Update total loss for run
                 running_loss += loss.item()
+                if batch_num >= BATCHES_PER_EPOCH - 1:  # End epoch after required number of random batches
+                    break
+
             #  Update average loss for epoch
-            number_of_batches = len(self.train_loader)
-            avg_epoch_loss = running_loss / number_of_batches
+            avg_epoch_loss = running_loss / BATCHES_PER_EPOCH
+            schedular.step(avg_epoch_loss)
             losses.append(avg_epoch_loss)
             if test:
                 # Run test run on training set
@@ -103,12 +110,18 @@ class Trainer:
                 # Run test run on test set
                 train_set_results = self.test(self.train_loader)
                 train_set_accuracy.append(train_set_results)
+                if test_set_results == max(test_set_accuracy):
+                    self.save_model("best_model.pt")
+                    if not silent:
+                        print("\t New best model saved")
+            # Print results of epoch
             if not silent:
                 print("\t Loss: " + str(avg_epoch_loss))
             if not silent and test:
                 print("\t Test set accuracy: " + str(test_set_results))
                 print("\t Train set accuracy: " + str(train_set_results))
 
+        self.save_model("final_model.pt")
         return losses, test_set_accuracy, train_set_accuracy
 
     def test(self, loader=None):
@@ -142,3 +155,6 @@ class Trainer:
                         correct_predictions += 1
 
         return correct_predictions / len(loader.dataset)
+
+    def save_model(self, path):
+        torch.save(self.network.state_dict(), path)
