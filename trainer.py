@@ -10,7 +10,7 @@ DEFAULT_BATCH_SIZE = 16
 DEFAULT_LEARNING_RATE = 0.1
 DEFAULT_WEIGHT_DECAY = 0
 DEFAULT_TRAINING_EPOCHS = 16
-BATCHES_PER_EPOCH = 128  # 1024 samples per epoch
+BATCHES_PER_EPOCH = 128  # 2048 samples per epoch
 
 
 class Trainer:
@@ -49,20 +49,21 @@ class Trainer:
     def train(self, test=True, silent=False, learning_rate=DEFAULT_LEARNING_RATE, weight_decay=DEFAULT_WEIGHT_DECAY, epochs=DEFAULT_TRAINING_EPOCHS):
         """
         Trains the neural network using the train set of data.
-        Uses binary-cross entropy loss and Adam optimisation.
+        Uses binary-cross entropy loss and SGD optimisation.
 
-        Prints loss and test accuracy each training epoch is silent is false.
+        Prints loss and test accuracy each training epoch if silent is false.
 
         :param: test: whether to test the model while training or not
         :param: learning_rate: learning rate used by the optimiser
         :param: weight_decay: weight decay used by the optimiser
-        :param: epochs: number of times the training set is passed through the neural network
+        :param: epochs: number of times batches from the training set are passed through the neural network
         :param: silent: whether results of tests should be printed
-        :return: Tuple of a list containing the loss of each epoch and the test accuracy. If test is False the second list will be empty.
+        :return: Tuple of a list containing the loss of each epoch and the test accuracy. If test is False the test accuracy lists will be empty
         """
         criterion = nn.BCELoss()
         optimiser = torch.optim.SGD(self.network.parameters(), lr=learning_rate, weight_decay=weight_decay)
-        schedular = ReduceLROnPlateau(optimiser, patience=4, verbose=True, factor=0.5)
+        # Every time loss has decreased for four epochs learning rate is reduced by half
+        schedular = ReduceLROnPlateau(optimiser, patience=4, verbose=not silent, factor=0.5)
 
         self.network.to(self.device)  # Move model onto GPU if available
 
@@ -113,7 +114,7 @@ class Trainer:
                     self.save_model("best_model.pt")
                     if not silent:
                         print("\t New best model saved")
-
+            # Print results of epoch
             if not silent:
                 print("\t Loss: " + str(avg_epoch_loss))
             if not silent and test:

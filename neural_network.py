@@ -1,6 +1,6 @@
 """
-Contains class NeuralNetwork which defines a neural network to predict if an image of a jigsaw piece is from the same
-part of the puzzle as an image of a section of the box
+Contains class NeuralNetwork which defines a Siamese neural network to predict if an image of a jigsaw piece is from the
+same part of the puzzle as an image of a section of the box
 """
 
 import torch
@@ -47,19 +47,18 @@ class NeuralNetwork(nn.Module):
         Calculates prediction that jigsaw piece and the sample of the base are the same location
         """
         pieces = self.conv(pieces)
-        pieces = torch.flatten(pieces, start_dim=1)
+        pieces = torch.flatten(pieces, start_dim=1)  # Flatten on dimensions after batch
         pieces = self.fc1(pieces)
         pieces = self.dropout(pieces)
         pieces = self.sigmoid(pieces)
 
         base_sections = self.conv(base_sections)
-        base_sections = torch.flatten(base_sections, start_dim=1)
+        base_sections = torch.flatten(base_sections, start_dim=1)  # Flatten on dimensions after batch
         base_sections = self.fc1(base_sections)
         base_sections = self.dropout(base_sections)
         base_sections = self.sigmoid(base_sections)
 
         diff = torch.abs(pieces - base_sections)
-        #combine = torch.concat((pieces, base_sections), 1)
 
         fc_out_result = self.fcOut1(diff)
         fc_out_result = self.fcOut2(fc_out_result)
